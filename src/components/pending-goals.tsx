@@ -4,31 +4,33 @@ import { createGoalCompletion } from '../http/create-goal-completion'
 import { getPendingGoals } from '../http/get-pending-goals'
 import { OutlineButton } from './ui/outline-button'
 
-export function PendignGoals() {
-	const queryCliente = useQueryClient()
+export function PendingGoals() {
+	const queryClient = useQueryClient()
 
-	const { data } = useQuery({
+	const { data, isLoading } = useQuery({
 		queryKey: ['pending-goals'],
 		queryFn: getPendingGoals
 	})
 
-	if (!data) return null
+	if (isLoading || !data) {
+		return null
+	}
 
-	async function handleCompleteGoal(goalId: string) {
-		await createGoalCompletion(goalId)
+	async function handleCreateGoalCompletion(goalId: string) {
+		await createGoalCompletion({ goalId })
 
-		queryCliente.invalidateQueries({ queryKey: ['summary'] })
-		queryCliente.invalidateQueries({ queryKey: ['pending-goals'] })
+		queryClient.invalidateQueries({ queryKey: ['pending-goals'] })
+		queryClient.invalidateQueries({ queryKey: ['summary'] })
 	}
 
 	return (
 		<div className="flex flex-wrap gap-3">
-			{data.map((goal) => {
+			{data.pendingGoals.map((goal) => {
 				return (
 					<OutlineButton
 						key={goal.id}
+						onClick={() => handleCreateGoalCompletion(goal.id)}
 						disabled={goal.completionCount >= goal.desiredWeeklyFrequency}
-						onClick={() => handleCompleteGoal(goal.id)}
 					>
 						<Plus className="size-4 text-zinc-600" />
 						{goal.title}

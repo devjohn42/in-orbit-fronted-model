@@ -33,6 +33,9 @@
 			"style": {
 				"noNonNullAssertion": "off"
 			},
+			"correctness": {
+				"noUnusedVariables": "off"
+			},
 			"a11y": {
 				"noLabelWithoutControl": "off"
 			}
