@@ -4,13 +4,10 @@ import { CreateGoal } from '../components/create-goal'
 import { EmptyGoals } from '../components/empty-goals'
 import { Dialog } from '../components/ui/dialog'
 import { WeeklySummary } from '../components/weekly-summary'
-import { getSummary } from '../http/get-summary'
+import { useGetWeekSummary } from '../http/generated/api'
 
 export function Application() {
-	const { data, isLoading } = useQuery({
-		queryKey: ['summary'],
-		queryFn: getSummary
-	})
+	const { data, isLoading } = useGetWeekSummary()
 
 	if (isLoading || !data) {
 		return (
@@ -20,14 +17,16 @@ export function Application() {
 		)
 	}
 
-	return (
-		<Dialog>
-			{data.summary?.total < 0 ? (
-				<WeeklySummary summary={data.summary} />
-			) : (
-				<EmptyGoals />
-			)}
-			<CreateGoal />
-		</Dialog>
-	)
+	return <div>{JSON.stringify(data, null, 2)}</div>
+
+	// return (
+	// 	<Dialog>
+	// 		{data.summary?.total < 0 ? (
+	// 			<WeeklySummary summary={data.summary} />
+	// 		) : (
+	// 			<EmptyGoals />
+	// 		)}
+	// 		<CreateGoal />
+	// 	</Dialog>
+	// )
 }

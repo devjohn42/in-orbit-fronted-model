@@ -7,7 +7,17 @@ export default defineConfig({
 			baseUrl: 'http://localhost:3333',
 			target: './src/http/generated/api.ts',
 			client: 'react-query',
-			clean: true
+			clean: true,
+
+			override: {
+				fetch: {
+					includeHttpResponseReturnType: false
+				},
+				mutator: {
+					path: './src/http/client.ts',
+					name: 'http'
+				}
+			}
 		}
 	}
 })

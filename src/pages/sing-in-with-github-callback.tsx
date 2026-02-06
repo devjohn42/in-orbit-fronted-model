@@ -17,8 +17,10 @@ export function SingInWithGithubCallBack() {
 
 	useEffect(() => {
 		authenticateFromGithub({ data: { code } }).then((response) => {
-			const token = response.data.token
+			const { token } = response
 			const cookies = new Cookies()
+
+			console.log('token', token)
 
 			cookies.set('in-orbit.token', token, {
 				path: '/',
