@@ -4,7 +4,12 @@ import { X } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import z from 'zod'
-import { createGoal } from '../http/generated/api'
+import {
+	createGoal,
+	getGetPendingGoalsQueryKey,
+	getGetWeekSummaryQueryKey,
+	useCreateGoal
+} from '../http/generated/api'
 import { Button } from './ui/button'
 import { DialogClose, DialogContent, DialogDescription, DialogTitle } from './ui/dialog'
 import { Input } from './ui/input'
@@ -19,7 +24,7 @@ const createGoalForm = z.object({
 type CreateGoalForm = z.infer<typeof createGoalForm>
 
 export function CreateGoal() {
-	const queryCliente = useQueryClient()
+	const queryClient = useQueryClient()
 
 	const {
 		register,
@@ -31,20 +36,25 @@ export function CreateGoal() {
 		resolver: zodResolver(createGoalForm)
 	})
 
+	const { mutateAsync: createGoal } = useCreateGoal()
+
 	async function handleCreateGoal({ title, desiredWeeklyFrequency }: CreateGoalForm) {
 		try {
 			await createGoal({
-				title,
-				desiredWeeklyFrequency
+				data: {
+					title,
+					desiredWeeklyFrequency
+				}
 			})
 
 			reset()
 
-			queryCliente.invalidateQueries({ queryKey: ['summary'] })
-			queryCliente.invalidateQueries({ queryKey: ['pending-goals'] })
+			queryClient.invalidateQueries({ queryKey: getGetPendingGoalsQueryKey() })
+			queryClient.invalidateQueries({ queryKey: getGetWeekSummaryQueryKey() })
 
 			toast.success('Meta criada com sucesso!')
 		} catch (error) {
+			console.log(error)
 			toast.error('Erro ao criar a meta, tente novamente!')
 		}
 	}

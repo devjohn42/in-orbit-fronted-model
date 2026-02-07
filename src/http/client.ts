@@ -13,13 +13,21 @@ async function getHeaders(headers?: HeadersInit): Promise<HeadersInit> {
 
 export async function http<T>(path: string, options: RequestInit): Promise<T> {
 	const headers = await getHeaders(options.headers)
-	const response = await fetch(path, {
+
+	const url = new URL(path, import.meta.env.VITE_API_URL)
+	const response = await fetch(url, {
 		...options,
 		headers
 	})
 
 	if (response.ok) {
-		const data = await response.json()
+		if (response.headers.get('content-type')?.includes('application/json')) {
+			const data = await response.json()
+
+			return data as T
+		}
+
+		const data = await response.text()
 
 		return data as T
 	}

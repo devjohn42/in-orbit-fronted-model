@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { CreateGoal } from '../components/create-goal'
 import { EmptyGoals } from '../components/empty-goals'
@@ -17,16 +16,14 @@ export function Application() {
 		)
 	}
 
-	return <div>{JSON.stringify(data, null, 2)}</div>
-
-	// return (
-	// 	<Dialog>
-	// 		{data.summary?.total < 0 ? (
-	// 			<WeeklySummary summary={data.summary} />
-	// 		) : (
-	// 			<EmptyGoals />
-	// 		)}
-	// 		<CreateGoal />
-	// 	</Dialog>
-	// )
+	return (
+		<Dialog>
+			{data.summary.total && data.summary.total > 0 ? (
+				<WeeklySummary summary={data.summary} />
+			) : (
+				<EmptyGoals />
+			)}
+			<CreateGoal />
+		</Dialog>
+	)
 }

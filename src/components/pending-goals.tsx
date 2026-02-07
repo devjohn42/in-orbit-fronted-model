@@ -1,41 +1,44 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { createGoalCompletion, getPendingGoals } from '../http/generated/api'
+import {
+	getGetPendingGoalsQueryKey,
+	getGetWeekSummaryQueryKey,
+	useCreateGoalCompletion,
+	useGetPendingGoals
+} from '../http/generated/api'
 import { OutlineButton } from './ui/outline-button'
 
 export function PendingGoals() {
 	const queryClient = useQueryClient()
 
-	const { data, isLoading } = useQuery({
-		queryKey: ['pending-goals'],
-		queryFn: getPendingGoals
-	})
+	const { data, isLoading } = useGetPendingGoals()
+	const { mutateAsync: createGoalCompletion } = useCreateGoalCompletion()
 
 	if (isLoading || !data) {
 		return null
 	}
 
 	async function handleCreateGoalCompletion(goalId: string) {
-		await createGoalCompletion({ goalId })
+		await createGoalCompletion({ data: { goalId } })
 
-		queryClient.invalidateQueries({ queryKey: ['pending-goals'] })
-		queryClient.invalidateQueries({ queryKey: ['summary'] })
+		queryClient.invalidateQueries({ queryKey: getGetPendingGoalsQueryKey() })
+		queryClient.invalidateQueries({ queryKey: getGetWeekSummaryQueryKey() })
 	}
 
-	// return (
-	// 	<div className="flex flex-wrap gap-3">
-	// 		{data.pendingGoals.map((goal) => {
-	// 			return (
-	// 				<OutlineButton
-	// 					key={goal.id}
-	// 					onClick={() => handleCreateGoalCompletion(goal.id)}
-	// 					disabled={goal.completionCount >= goal.desiredWeeklyFrequency}
-	// 				>
-	// 					<Plus className="size-4 text-zinc-600" />
-	// 					{goal.title}
-	// 				</OutlineButton>
-	// 			)
-	// 		})}
-	// 	</div>
-	// )
+	return (
+		<div className="flex flex-wrap gap-3">
+			{data.pendingGoals.map((goal) => {
+				return (
+					<OutlineButton
+						key={goal.id}
+						onClick={() => handleCreateGoalCompletion(goal.id)}
+						disabled={goal.completionCount >= goal.desiredWeeklyFrequency}
+					>
+						<Plus className="size-4 text-zinc-600" />
+						{goal.title}
+					</OutlineButton>
+				)
+			})}
+		</div>
+	)
 }
