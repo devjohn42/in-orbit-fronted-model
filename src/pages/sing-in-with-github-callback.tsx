@@ -20,8 +20,6 @@ export function SingInWithGithubCallBack() {
 			const { token } = response
 			const cookies = new Cookies()
 
-			console.log('token', token)
-
 			cookies.set('in-orbit.token', token, {
 				path: '/',
 				maxAge: 60 * 60 * 24 // 1 day

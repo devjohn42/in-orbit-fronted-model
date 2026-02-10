@@ -1,11 +1,12 @@
 import { DialogTrigger } from '@radix-ui/react-dialog'
 import dayjs from 'dayjs'
 import ptBR from 'dayjs/locale/pt-BR'
-import { CheckCircle2, Plus } from 'lucide-react'
-import logo from '../assets/in-orbit-logo.svg'
+import { ArrowLeft, ArrowRight, CheckCircle2, Plus } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import type { GetWeekSummary200Summary } from '../http/generated/api'
 import { PendingGoals } from './pending-goals'
 import { Button } from './ui/button'
+import { InOrbitIcon } from './ui/in-orbit-icon'
 import { Progress, ProgressIndicator } from './ui/progress-bar'
 import { Separator } from './ui/separator'
 import { UserLevelBar } from './user-level-bar'
@@ -18,12 +19,35 @@ interface WeeklySummaryProps {
 }
 
 export function WeeklySummary({ summary }: WeeklySummaryProps) {
-	const fromDate = dayjs().startOf('week').format('D[ de ]MMM')
-	const toDate = dayjs().endOf('week').format('D[ de ]MMM')
+	const [searchParams, setSearchParams] = useSearchParams()
+	const weekStartsAtParam = searchParams.get('week_starts_at')
+
+	const weeksStartsAt = weekStartsAtParam ? new Date(weekStartsAtParam) : new Date()
+
+	const fromDate = dayjs(weeksStartsAt).startOf('week').format('D[ de ]MMM')
+	const toDate = dayjs(weeksStartsAt).endOf('week').format('D[ de ]MMM')
 
 	const completedPercentage = summary.total
 		? Math.round((summary.completed * 100) / summary.total)
 		: 0
+
+	const handlePreviousWeek = () => {
+		const params = new URLSearchParams(searchParams)
+
+		params.set('week_starts_at', dayjs(weeksStartsAt).subtract(7, 'days').toISOString())
+
+		setSearchParams(params)
+	}
+
+	const handleNextWeek = () => {
+		const params = new URLSearchParams(searchParams)
+
+		params.set('week_starts_at', dayjs(weeksStartsAt).add(7, 'days').toISOString())
+
+		setSearchParams(params)
+	}
+
+	const isCurrentWeek = dayjs(weeksStartsAt).endOf('week').isAfter(new Date())
 
 	return (
 		<main className="max-w-150 py-10 px-5 mx-auto flex flex-col gap-6">
@@ -31,17 +55,30 @@ export function WeeklySummary({ summary }: WeeklySummaryProps) {
 				<UserProfile />
 				<UserLevelBar />
 			</div>
-			<div className="px-5 mx-auto flex flex-col gap-6">
+			<div className="px-5 flex flex-col gap-6">
 				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-6">
-						<img src={logo} alt="in-orbit.logo" />
+					<div className="flex items-center gap-3">
+						<InOrbitIcon />
 						<span className="text-lg font-semibold">
 							{fromDate} - {toDate}
 						</span>
+						<div className="flex items-center gap-2">
+							<Button onClick={handlePreviousWeek} variant="secondary" size="icon">
+								<ArrowLeft className="size-4" />
+							</Button>
+							<Button
+								disabled={isCurrentWeek}
+								onClick={handleNextWeek}
+								variant="secondary"
+								size="icon"
+							>
+								<ArrowRight className="size-4" />
+							</Button>
+						</div>
 					</div>
 
 					<DialogTrigger asChild>
-						<Button size="sm">
+						<Button size="sm" disabled={!isCurrentWeek}>
 							<Plus className="size-4" />
 							Cadastrar meta
 						</Button>
@@ -49,7 +86,7 @@ export function WeeklySummary({ summary }: WeeklySummaryProps) {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<Progress value={summary.completed} max={summary.total ?? 0}>
+					<Progress value={summary.completed} max={summary.total ?? 1}>
 						<ProgressIndicator style={{ width: `${completedPercentage}%` }} />
 					</Progress>
 
@@ -64,7 +101,7 @@ export function WeeklySummary({ summary }: WeeklySummaryProps) {
 
 				<Separator />
 
-				<PendingGoals />
+				{isCurrentWeek && <PendingGoals />}
 
 				<div className="space-y-6">
 					<h2 className="text-xl font-medium">Sua semana</h2>
